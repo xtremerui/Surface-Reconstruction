@@ -88,8 +88,7 @@ void Mesh::sortEdges(void)
 		}
 		//sortedEdges->push_back(edgeIndex[i]);
 	}
-	//printf("i: %d j: %d ", i,j);
-	//delete edges;
+
     edges->assign(edgeIndex.begin(),edgeIndex.end());
 
     list<Edge*>::iterator ie;
@@ -98,6 +97,32 @@ void Mesh::sortEdges(void)
     	(*ie)->vertices[0]->addEdge((*ie));
     	(*ie)->vertices[1]->addEdge((*ie));
     }
+
+}
+
+void Mesh::sortEdges(list<Edge*>* edges)
+{
+	vector<Edge*> edgeIndex (edges->begin(),edges->end());
+
+
+	int i,j;
+	for(i=0;i<edgeIndex.size();i++)
+	{
+		for(j=i+1;j<edgeIndex.size();j++)
+		{
+			if(edgeIndex[i]->equal(edgeIndex[j]))
+			{
+				//edgeIndex[j]=edgeIndex[edgeIndex.size()-1];
+				edgeIndex.at(j)=edgeIndex.back();
+				edgeIndex.pop_back();
+				//size--;
+				break;
+			}
+		}
+		//sortedEdges->push_back(edgeIndex[i]);
+	}
+
+    edges->assign(edgeIndex.begin(),edgeIndex.end());
 
 }
 
@@ -152,5 +177,59 @@ list<Vertex*>* Mesh::getVertices(void) const
 list<Edge*>* Mesh::getEdges(void) const
 {
 	return edges;
+}
+
+void Mesh::setMinMaxValues(void)
+{
+  list<Vertex*>::iterator iv;
+
+  xMin = xMax = yMin = yMax = zMin = zMax = 0;
+
+  // find smalles & largest vertex in all directions (x, y, z)
+  for (iv=vertices->begin(); iv != vertices->end(); iv++)
+    {
+      if (xMin > (*iv)->x())
+	xMin = (*iv)->x();
+      if (xMax < (*iv)->x())
+	xMax = (*iv)->x();
+      if (yMin > (*iv)->y())
+	yMin = (*iv)->y();
+      if (yMax < (*iv)->y())
+	yMax = (*iv)->y();
+      if (zMin > (*iv)->z())
+	zMin = (*iv)->z();
+      if (zMax < (*iv)->z())
+	zMax = (*iv)->z();
+    }
+}
+
+float Mesh::XMin(void) const
+{
+  return xMin;
+}
+
+float Mesh::XMax(void) const
+{
+  return xMax;
+}
+
+float Mesh::YMin(void) const
+{
+  return yMin;
+}
+
+float Mesh::YMax(void) const
+{
+  return yMax;
+}
+
+float Mesh::ZMin(void) const
+{
+  return zMin;
+}
+
+float Mesh::ZMax(void) const
+{
+  return zMax;
 }
 

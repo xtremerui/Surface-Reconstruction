@@ -44,6 +44,7 @@ public:
 	const MathWork* mathData(void) const;
 
 	const float* floatNormal(void) const;
+	MathWork* getNormal(void);
 	void calNormal(void);
 	void addNormal(const MathWork *norm);
 

@@ -18,8 +18,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "Eigen/Core"
+#include "Eigen/Eigen"
 
 using namespace std;
+using namespace Eigen;
 
 float xy_aspect;
 int   last_x, last_y;
@@ -52,6 +55,8 @@ list<Triangle*> *listTriangles;
 list<Vertex*>   *listVertices;
 vector<Vertex*> vertexIndex;
 list<Edge*> result;
+list<Edge*> result1;
+list<Vertex*> tangentPlnCen;
 
 Triangle *tri;
 Vertex *v;
@@ -103,12 +108,40 @@ GLfloat lights_rotation[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 
 
 
-	bool sortFunction(const Edge* e1, const Edge* e2)
+bool sortFunction(const Edge* e1, const Edge* e2)
+{
+	return e1->weight<e2->weight;
+}
+
+void DFS (Vertex* v , bool visited[])
+{
+	//Mark the current node as node visited
+	visited[v->index-1] = true;
+
+    //printf("vindex: %d ", v->index);
+	//Recur for all the vertices adjacent to this vertex
+	list<Edge*>::iterator ie;
+	for( ie = v->getEdges()->begin(); ie != v->getEdges()->end(); ie++)
 	{
-		return e1->weight<e2->weight;
+		Vertex* w = v->equal((*ie)->vertices[0]) ? (*ie)->vertices[1] : (*ie)->vertices[0];
+		//printf("windex: %d ", w->index);
+		if( !visited[w->index-1])
+		{
+			//propagate normal through this edge
+			float result = 0.0;
+			MathWork::dotProduct(v->floatNormal(),3,w->floatNormal(), &result);
+			//printf("x:%f y:%f z:%f \n", w->floatNormal()[0],w->floatNormal()[1],w->floatNormal()[2]);
+			if (result < 0){
+				w->getNormal()->opposit();
+				//printf("ax:%f ay:%f az:%f \n", w->floatNormal()[0],w->floatNormal()[1],w->floatNormal()[2]);
+			}
+
+
+			// call DFS for the child vertex w
+			DFS(w, visited);
+		}
 	}
-
-
+}
 /**************IO function********************/
 
 void read(FILE *f)
@@ -310,8 +343,119 @@ void control_cb( int control )
             // save the final set of k nearest neighbor to Xi
             (*iv1)->kNNbr = kNNbr;
 
-            // compute the weight of the kNNr points
+            // compute the centroid oi of k nearest neighbor
             list<Vertex*>::iterator iv3;
+            float oix =0,oiy=0,oiz=0;
+
+			for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
+
+				oix += (*iv3)->x();
+				oiy += (*iv3)->y();
+				oiz += (*iv3)->z();
+			}
+			Vertex* oi = new Vertex(oix/K_NEAREST_NBR,oiy/K_NEAREST_NBR,oiz/K_NEAREST_NBR);
+			oi->index = (*iv1)->index;
+
+
+            // PCA compute the normal of oi
+            int m = K_NEAREST_NBR;
+            int n = 3;
+            MatrixXd DataPoints(m,n);
+            double mean;
+            VectorXd meanVector;
+            int row = 0;
+            typedef pair<double, int> myPair;
+            typedef vector<myPair> PermutationIndices;
+
+            for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
+            	DataPoints(row,0) = (*iv3)->x();
+				DataPoints(row,1) = (*iv3)->y();
+				DataPoints(row,2) = (*iv3)->z();
+				row++;
+            }
+            //printf("row %d", row);
+
+            for (int i = 0; i < DataPoints.cols(); i++){
+            	   mean = (DataPoints.col(i).sum())/m;		 //compute mean
+            	   meanVector  = VectorXd::Constant(m,mean); // create a vector with constant value = mean
+            	   DataPoints.col(i) -= meanVector;
+            	  // std::cout << meanVector.transpose() << "\n" << DataPoints.col(i).transpose() << "\n\n";
+              }
+
+              // get the covariance matrix
+              MatrixXd Covariance = MatrixXd::Zero(n, n);
+              Covariance =  DataPoints.transpose() * DataPoints ;
+            //  std::cout << Covariance ;
+
+              // compute the eigenvalue on the Cov Matrix
+              EigenSolver<MatrixXd> m_solve(Covariance);
+
+              VectorXd eigenvalues = VectorXd::Zero(n);
+              eigenvalues = m_solve.eigenvalues().real();
+
+              MatrixXd eigenVectors = MatrixXd::Zero(n, n);  // matrix (n x m) (points, dims)
+              eigenVectors = m_solve.eigenvectors().real();
+
+              // sort and get the permutation indices
+              PermutationIndices pi;
+              for (int i = 0 ; i < n; i++)
+            	  pi.push_back(std::make_pair(eigenvalues(i), i));
+
+              sort(pi.begin(), pi.end());
+              //printf("s");
+              /*for (unsigned int i = 0; i < n ; i++){
+            	  printf("eigen=%f" , pi[i].first );
+					printf(" pi= %d" ,pi[i].second );
+              }*/
+
+              MathWork* ni = new MathWork();
+              ni->value[0] = eigenVectors.col(pi[0].second)(0);
+              ni->value[1] = eigenVectors.col(pi[0].second)(1);
+              ni->value[2] = eigenVectors.col(pi[0].second)(2);
+
+              /*for (unsigned int i = 0; i < n ; i++)
+            	  printf("nx=%f ny=%f nz=%f \n" , ni->value[0],ni->value[1],ni->value[2] );*/
+
+
+
+              oi->addNormal(ni);
+              tangentPlnCen.push_back(oi);
+		}
+		printf("tangentPlnCen size:%d ", tangentPlnCen.size());fflush(stdout);
+		// compute the k nearest neighbor of oi
+
+		for (iv1=tangentPlnCen.begin(); iv1 != tangentPlnCen.end(); iv1++)
+		{
+			list<Vertex*>::iterator iv2;
+			list<Vertex*> kNNbr;
+			//printf("before:%d\n", kNNbr.size());fflush(stdout);
+			for (iv2=tangentPlnCen.begin(); iv2 != tangentPlnCen.end(); iv2++)
+			{
+				(*iv2)->disc = ((*iv1)->x()-(*iv2)->x())*((*iv1)->x()-(*iv2)->x()) +
+						((*iv1)->y()-(*iv2)->y())*((*iv1)->y()-(*iv2)->y())+
+						((*iv1)->z()-(*iv2)->z())*((*iv1)->z()-(*iv2)->z());
+				if (kNNbr.size() < K_NEAREST_NBR){
+					kNNbr.push_back((*iv2));
+
+				}
+				else{
+					list<Vertex*>::iterator iv3;
+					for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
+						// replace the point in the set with a new point if that new point has less
+						// distance to Oi
+						if ((*iv2)->disc < (*iv3)->disc){
+							// might be wrong here! warning !!!!!!!!!
+							*iv3 = *iv2;
+							break;
+						}
+					}
+				}
+			}
+			// save the final set of k nearest neighbor to Oi
+			(*iv1)->kNNbr = kNNbr;
+
+			// compute the weight of the kNNr points
+			list<Vertex*>::iterator iv3;
 			for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
 
 				e = new Edge((*iv1),(*iv3));
@@ -321,52 +465,137 @@ void control_cb( int control )
 				//printf("%f ", e->weight);fflush(stdout);
 				mesh->addEdge(e);
 			}
+		}
 
 
 
-            // compute the euclidean distance
+		// MST based on the weight as Euclidean distance (EMST)
 
-            /*// test print the set
-            list<Vertex*>::iterator test;
-            for (test = (*iv1)->kNNbr.begin() ; test != (*iv1)->kNNbr.end() ; test++){
-            	printf("x:%f y:%f z:%f \n", (*test)->x(),(*test)->y(),(*test)->z());fflush(stdout);
+		vector<Vertex*> m_vertexs(tangentPlnCen.begin(),tangentPlnCen.end());
+		vector<Edge*> m_edges(mesh->getEdges()->begin(), mesh->getEdges()->end());
 
-            }*/
+
+		sort (m_edges.begin(),m_edges.end(), sortFunction);
+		printf("begin size:%d ", m_edges.size());fflush(stdout);
+
+		DisjointSet<Vertex> dv;
+		dv.makeSet(m_vertexs);
+		vector<Edge*>::iterator it = m_edges.begin();
+
+		for (;it!= m_edges.end();++it)
+		{
+			Vertex p1;
+			Vertex p2;
+			bool b1 = dv.findSet((*it)->vertices[0], &p1 );
+			bool b2 = dv.findSet((*it)->vertices[1], &p2 );
+			//printf("p1: %d\n", p1.index);fflush(stdout);
+			//printf("p2: %d\n", p2.index);fflush(stdout);
+			if ( b1&& b2 && p1.index != p2.index)
+			{
+				dv.Union(&p1, &p2);
+				result.push_back(*it);
+				//printf("ow: %f ",(*it)->weight );fflush(stdout);
+			}
 
 		}
-		// EMST
-                   // mesh->sortEdges();
-					vector<Vertex*> m_vertexs(vertices->begin(),vertices->end());
-                    vector<Edge*> m_edges(mesh->getEdges()->begin(), mesh->getEdges()->end());
+		printf("result size:%d ", result.size());fflush(stdout);
+
+		// Riemannian graph
+		for (iv1=tangentPlnCen.begin(); iv1 != tangentPlnCen.end(); iv1++)
+		{
+			list<Vertex*>::iterator iv2;
+			for (iv2=(*iv1)->kNNbr.begin(); iv2 != (*iv1)->kNNbr.end(); iv2++)
+			{
+				e = new Edge((*iv1),(*iv2));
+				result.push_back(e);
+
+			}
+		}
+		printf("result1 size:%d ", result.size());fflush(stdout);
+        Mesh::sortEdges(&result);
+		printf("result12 size:%d ", result.size());fflush(stdout);
+
+		// recompute the weight of each edge (i,j) in Riemannian Graph
+		// now the weight is 1-|ni dotproduct nj|
+        list<Edge*>::iterator ie;
+        for (ie = result.begin() ; ie != result.end() ; ie++){
+        	float result = 0.0;
+        	MathWork::dotProduct((*ie)->vertices[0]->floatNormal(),3,
+        			             (*ie)->vertices[1]->floatNormal(),
+        			             &result);
+        //	printf("ow: %f ", (*ie)->weight);
+        	(*ie)->weight = 1 - fabs(result);
+        //	printf("nw: %f ", (*ie)->weight);
+        }
+
+        // find the MST of the Riemannian Graph based on the new weight
+
+        vector<Edge*> Rieman(result.begin(), result.end());
 
 
-					sort (m_edges.begin(),m_edges.end(), sortFunction);
-					printf("begin size:%d ", m_edges.size());fflush(stdout);
-					/*vector<Edge*>::iterator test;
-					            for (test = m_edges.begin() ; test != m_edges.end() ; test++){
-					            	printf("%f ", (*test)->weight);fflush(stdout);
+		sort (Rieman.begin(),Rieman.end(), sortFunction);
+		printf("begin size:%d ", Rieman.size());fflush(stdout);
 
-					            }*/
-							DisjointSet<Vertex> dv;
-							dv.makeSet(m_vertexs);
-							vector<Edge*>::iterator it = m_edges.begin();
-							for (;it!= m_edges.end();++it)
-							{
-								Vertex p1;
-								Vertex p2;
-								bool b1 = dv.findSet((*it)->vertices[0], &p1 );
-								bool b2 = dv.findSet((*it)->vertices[1], &p2 );
-								//printf("p1: %d\n", p1.index);fflush(stdout);
-								//printf("p2: %d\n", p2.index);fflush(stdout);
-								if ( b1&& b2 && p1.index != p2.index)
-								{
-									dv.Union(&p1, &p2);
-									result.push_back(*it);
-									//printf("bb ");fflush(stdout);
-								}
-							}
-							printf("result size:%d ", result.size());fflush(stdout);
-                            showEdges = true;
+		DisjointSet<Vertex> dv1;
+		dv1.makeSet(m_vertexs);
+		vector<Edge*>::iterator ie1 = Rieman.begin();
+
+		for (;ie1!= Rieman.end();++ie1)
+		{
+			Vertex p1;
+			Vertex p2;
+			bool b1 = dv1.findSet((*ie1)->vertices[0], &p1 );
+			bool b2 = dv1.findSet((*ie1)->vertices[1], &p2 );
+			//printf("p1: %d\n", p1.index);fflush(stdout);
+			//printf("p2: %d\n", p2.index);fflush(stdout);
+			if ( b1&& b2 && p1.index != p2.index)
+			{
+				dv1.Union(&p1, &p2);
+				result1.push_back(*ie1);
+				//update the adjacent relation to both end of this edge
+				(*ie1)->vertices[0]->addEdge((*ie1));
+				(*ie1)->vertices[1]->addEdge((*ie1));
+
+				//printf("ow: %f ",(*it)->weight );fflush(stdout);
+			}
+
+		}
+		printf("result1 size:%d ", result1.size());fflush(stdout);
+
+		// find the oi with max z value
+		iv1=tangentPlnCen.begin();
+		Vertex* oiWithMaxZ = (*iv1);
+
+		for (iv1=tangentPlnCen.begin(); iv1 != tangentPlnCen.end(); iv1++)
+		{
+			if ((*iv1)->z() > oiWithMaxZ->z())
+				oiWithMaxZ = *iv1;
+		}
+
+		// force the normal to point to z+
+		float result = 0.0;
+		MathWork::dotProduct(oiWithMaxZ->floatNormal(),3,
+								oiWithMaxZ->floatData(), &result);
+		if (result < 0)
+			oiWithMaxZ->getNormal()->opposit();
+
+		//printf("maxZ: %f ", oiWithMaxZ->z());
+
+		// traverse the MST tree with root oi(with max z) to propagate normal
+
+		int oiSize = tangentPlnCen.size();
+
+		bool *visited = new bool[oiSize];
+		for( int i = 0; i < oiSize; i++)  // mark all oi as unvisited
+			visited[i] = false;
+
+		DFS(oiWithMaxZ, visited);
+
+		// signed distance
+
+
+
+        showEdges = true;
 
 	}
 
@@ -458,15 +687,16 @@ void displayEdges()
 	list<Edge*>::iterator ie;
 
 
-		for (ie=result.begin(); ie != result.end(); ie++)
+		for (ie=result1.begin(); ie != result1.end(); ie++)
 	    	{
 
 			glBegin(GL_LINES);
 
-	        /*if ( (*iv)->floatNormal() != NULL )
-	        	glNormal3fv( (GLfloat*) (*iv)->floatNormal() );*/
+	        /*if ( (*ie)->vertices[0]->floatNormal() != NULL )
+	        	glNormal3fv( (GLfloat*) (*ie)->vertices[0]->floatNormal() );*/
 			glVertex3fv( (GLfloat*) (*ie)->vertices[0]->floatData() );
-
+			/*if ( (*ie)->vertices[1]->floatNormal() != NULL )
+				glNormal3fv( (GLfloat*) (*ie)->vertices[1]->floatNormal() );*/
 			glVertex3fv( (GLfloat*) (*ie)->vertices[1]->floatData() );
 
 	        glEnd();
@@ -679,7 +909,7 @@ void myGlutDisplay( void )
     }
     glPopMatrix();
     // Force re-render the object in case a new file is loaded
-    glutPostRedisplay();
+    //glutPostRedisplay(); //warning!!!!!!!!!!!!
 
     if ( show_text )
     { // Disable lighting while we render text

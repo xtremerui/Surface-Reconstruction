@@ -116,4 +116,16 @@ void MathWork::matrixMul(float* m1, int m, int n, int k, float* m2, float* resul
 
 }
 
+void MathWork::dotProduct(const float* m1, int n, const float* m2, float* result)
+{
+	for (int i = 0;i<n;i++)
+		*result = *result + m1[i]*m2[i];
 
+}
+
+void MathWork::opposit()
+{
+	value[0] = -value[0];
+	value[1] = -value[1];
+	value[2] = -value[2];
+}

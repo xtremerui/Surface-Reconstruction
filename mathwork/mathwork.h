@@ -18,6 +18,8 @@ public:
     static void add(const MathWork* m1, MathWork* m2);
     static int matrixInverse(float *a,int n);
     static void matrixMul(float* m1, int m, int n, int k, float* m2, float* result);
+    static void dotProduct(const float* m1, int n, const float* m2, float* result);
+    void opposit(void);
 	float value[3];
 	float v[4][4];
 };

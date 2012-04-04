@@ -29,6 +29,7 @@ public:
 	void addVertex(Vertex *v);
 	bool addEdge(Edge *e);
 	void sortEdges(void);
+	static void sortEdges(list<Edge*> *edges);
 	void remove(Vertex *v);
     void remove(Edge *e);
     void remove(Triangle *t);
@@ -36,6 +37,14 @@ public:
 	list<Vertex*>* getVertices(void) const;
 	list<Triangle*>* getTriangles(void) const;
 	list<Edge*>* getEdges(void) const;
+
+	void setMinMaxValues(void);
+	float XMin(void) const;
+	float YMin(void) const;
+	float ZMin(void) const;
+	float XMax(void) const;
+	float YMax(void) const;
+	float ZMax(void) const;
 
 protected:
 
@@ -45,6 +54,8 @@ protected:
 	// verNum records the total vertices number in
 	// this mesh
 	int verNum;
+	float xMin,yMin,zMin,xMax,yMax,zMax;
+
 };
 
 #endif

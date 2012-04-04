@@ -14,11 +14,12 @@ Vertex::Vertex(float x, float y, float z)
 
 Vertex::Vertex()
 {
+	vNormal = NULL;
 }
 
 Vertex::~Vertex()
 {
-	delete vNormal;
+	//delete vNormal;
 }
 
 bool Vertex::checkAndAddEdge(Edge* edge)
@@ -124,6 +125,11 @@ const MathWork* Vertex::mathData(void) const
 const float* Vertex::floatNormal(void) const
 {
 	return vNormal != NULL ? vNormal->value : NULL;
+}
+
+MathWork* Vertex::getNormal(void)
+{
+	return vNormal;
 }
 
 void Vertex::addNormal(const MathWork *norm)
