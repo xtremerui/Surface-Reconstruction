@@ -142,6 +142,37 @@ void DFS (Vertex* v , bool visited[])
 		}
 	}
 }
+
+float distance (Vertex* p1, Vertex* p2){
+
+	return (p1->x()-p2->x())*(p1->x()-p2->x()) +
+			(p1->y()-p2->y())*(p1->y()-p2->y())+
+			(p1->z()-p2->z())*(p1->z()-p2->z());
+
+}
+
+float SDF (Vertex* p){
+	// find the closest tangent plane center oi
+	list<Vertex*>::iterator iv;
+	Vertex* closestCen = *tangentPlnCen.begin();
+	float minDisc = distance (p, closestCen);
+
+	for(iv = tangentPlnCen.begin(); iv!= tangentPlnCen.end();iv++){
+		float temp = distance (p, *iv);
+        //printf("d:%f ", temp);fflush(stdout);
+		if (minDisc > temp)
+			closestCen = *iv;
+
+	}
+
+	// f(p) = (p-oi).ni
+	float shortDisc;
+	float diff[]={p->x()-closestCen->x(), p->y()-closestCen->y(),p->z()-closestCen->z()};
+	MathWork::dotProduct(diff, 3, closestCen->floatNormal(),&shortDisc);
+
+	return shortDisc;
+
+}
 /**************IO function********************/
 
 void read(FILE *f)
