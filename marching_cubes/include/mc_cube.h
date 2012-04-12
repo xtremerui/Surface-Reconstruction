@@ -31,7 +31,8 @@ typedef struct cube_s {
     LIST_ENTRY(struct cube_s) stack_entry;
     float lower_bound[3];
     float upper_bound[3];
-    uint32_t level;
+    float isolvl[8];
+    uint8_t level;
     uint8_t cube_index;
 } Cube;
 

@@ -26,7 +26,7 @@
  *---------------------------------------------------------
  */
 
-float (*isolevel_function) (float x, float y, float z);
+float (*isolvl_function) (float x, float y, float z);
 
 /*
  *---------------------------------------------------------
@@ -40,8 +40,8 @@ int marchingcube(
         float lower_bound[3], 
         float upper_bound[3], 
         uint32_t level, 
-        isolevel_function isolevel_fn,
-        float isolevel_threshold,
+        isolvl_function isolvl_fn,
+        float isolvl_threshold,
         Mesh *result);
 
 #endif
