@@ -37,7 +37,7 @@ Cube* mc_cbstack_pop (){
     Cube *result;
     result = cube_stack.lh_first;
     if(result){
-        SLIST_REMOVE(result, entries);
+        SLIST_REMOVE_HEAD(result, entries);
     }
 
     return result;

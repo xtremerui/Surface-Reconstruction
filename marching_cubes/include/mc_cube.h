@@ -16,7 +16,7 @@
 #ifndef _CUBE_H_
 #define _CUBE_H_
 
-#include <stdint>
+#include <stdint.h>
 #include <sys/queue.h>
 
 /*
@@ -27,14 +27,16 @@
  *---------------------------------------------------------
  */
 
-typedef struct cube_s {
-    LIST_ENTRY(struct cube_s) stack_entry;
+typedef struct cube_s Cube;
+
+struct cube_s {
+    SLIST_ENTRY(Cube) stack_entry;
     float lower_bound[3];
     float upper_bound[3];
     float isolvl[8];
     uint8_t level;
     uint8_t cube_index;
-} Cube;
+};
 
 
 /*

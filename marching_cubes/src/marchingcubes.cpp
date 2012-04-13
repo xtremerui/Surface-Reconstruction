@@ -15,7 +15,7 @@
 
 #include "marchingcubes.h"
 
-#include <stdlib>
+#include <stdlib.h>
 
 #include "mc_tables.h"
 #include "mc_cubestack.h"
@@ -73,7 +73,6 @@ process_cube(
         float threshold, 
         Mesh* mesh)
 {
-    Cube *cube[2][2][2];
     int *tri_index;
 
     /* skip cubes that are completely inside/outside surface */
@@ -84,16 +83,83 @@ process_cube(
     /* compute triangle */
     if(cube->level == lvl_max){
         tri_index = tri_table[cube->cube_index];
+        /* each triangle */
         for(int i = 0; tri_index[i] != -1; i+=3){
-            
+            float tri_pos[3][3];
+
+            for(int j = i; j < i+3; j++){
+                int *point = edge_table[tri_index[j]];
+                float endpoint[2][3];
+                float ep_isolvl[2];
+
+                /* compute coordinate & iso-level of two endpoints */
+                for(int k = 0; k < 2; k++){
+                    int tmp = point[k] & 0x3;
+                    if(tmp < 2){
+                        endpoint[k][0] = cube->lower_bound[0];
+                    } else {
+                        endpoint[k][0] = cube->upper_bound[0];
+                    }
+                    if(tmp == 0 || tmp == 3){
+                        endpoint[k][1] = cube->lower_bound[1];
+                    } else {
+                        endpoint[k][1] = cube->upper_bound[1];
+                    }
+                    if(point[k]<4){
+                        endpoint[k][2] = cube->lower_bound[2];
+                    } else {
+                        endpoint[k][2] = cube->upper_bound[2];
+                    }
+
+                    ep_isolvl[k] = cube->isolvl[point[k]];
+                    ep_isolvl[k] *= ep_isolvl[k]>0.0?1.0:(-1.0);
+                }
+
+                /* compute coordinate of triangle */
+                for(int t = 0; t < 3; t++){
+                    tri_pos[j-i][t] = ep_isolvl[1]*endpoint[0][t] + ep_isolvl[0]*endpoint[1][t];
+                    tri_pos[j-i][t] /= ep_isolvl[0] + ep_isolvl[1];
+                }
+            }
+
+            /* FIXME: add to mesh */
+            mesh->addTriangle(new Triangle( 
+                    new Vertex(tri_pos[0][0], tri_pos[0][1], tri_pos[0][2]), 
+                    new Vertex(tri_pos[1][0], tri_pos[1][1], tri_pos[1][2]),
+                    new Vertex(tri_pos[2][0], tri_pos[2][1], tri_pos[2][2])));
         }
     }
 
     /* next level - subdivide cube into 8 smaller cubes */
+    float new_bound[2][3];
     for(int x = 0; x < 2; x++){
+        if(x == 0){
+            new_bound[0][0] = cube->lower_bound[0];
+            new_bound[1][0] = (cube->lower_bound[0] + cube->upper_bound[0]) * 0.5;
+        } else {
+            new_bound[0][0] = (cube->lower_bound[0] + cube->upper_bound[0]) * 0.5;
+            new_bound[1][0] = cube->upper_bound[0];
+        }
         for(int y = 0; y < 2; y++){
+            if(y == 0){
+                new_bound[0][1] = cube->lower_bound[1];
+                new_bound[1][1] = (cube->lower_bound[1] + cube->upper_bound[1]) * 0.5;
+            } else {
+                new_bound[0][1] = (cube->lower_bound[1] + cube->upper_bound[1]) * 0.5;
+                new_bound[1][1] = cube->upper_bound[1];
+            }
+
             for(int z = 0; z < 2; z++){
                 Cube *sub_cube;
+
+                if(z == 0){
+                    new_bound[0][2] = cube->lower_bound[2];
+                    new_bound[1][2] = (cube->lower_bound[2] + cube->upper_bound[2]) * 0.5;
+                } else {
+                    new_bound[0][2] = (cube->lower_bound[2] + cube->upper_bound[2]) * 0.5;
+                    new_bound[1][2] = cube->upper_bound[2];
+                }
+
 
                 /* allocate memory*/
                 sub_cube = (Cube *)malloc(sizeof(Cube));
@@ -102,6 +168,10 @@ process_cube(
                 }
 
                 /* populate cube */
+                memcpy(sub_cube->lower_bound, new_bound[0], sizeof(float)*3);
+                memcpy(sub_cube->upper_bound, new_bound[1], sizeof(float)*3);
+                sub_cube->level = cube->level + 1;
+                compute_cube_isolvl(sub_cube, isolvl_fn);
 
                 /* push into stack */
                 SLIST_INSERT_HEAD(&cube_stack, cube, stack_entry);

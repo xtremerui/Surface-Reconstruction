@@ -16,6 +16,7 @@
 #ifndef _MARCHINGCUBES_H_
 #define _MARCHINGCUBES_H_
 
+#include <stdint.h>
 #include "mesh.h"
 
 /*
@@ -26,7 +27,7 @@
  *---------------------------------------------------------
  */
 
-float (*isolvl_function) (float x, float y, float z);
+typedef float (*isolvl_function) (float x, float y, float z);
 
 /*
  *---------------------------------------------------------
@@ -42,7 +43,7 @@ int marchingcube(
         uint32_t level, 
         isolvl_function isolvl_fn,
         float isolvl_threshold,
-        Mesh *result);
+        Mesh **result);
 
 #endif
 
