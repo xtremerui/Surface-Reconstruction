@@ -27,7 +27,7 @@
  *---------------------------------------------------------
  */
 
-static SLIST_HEAD(CubeStack, (Cube *)) cube_stack;
+static SLIST_HEAD(CubeStack, cube_s) cube_stack;
 
 /*
  *---------------------------------------------------------

@@ -26,17 +26,14 @@
  *
  *---------------------------------------------------------
  */
-
-typedef struct cube_s Cube;
-
-struct cube_s {
-    SLIST_ENTRY(Cube) stack_entry;
+typedef struct cube_s {
+    SLIST_ENTRY(cube_s) stack_entry;
     float lower_bound[3];
     float upper_bound[3];
     float isolvl[8];
     uint8_t level;
     uint8_t cube_index;
-};
+} Cube;
 
 
 /*
@@ -47,34 +44,17 @@ struct cube_s {
  *---------------------------------------------------------
  */
 
-Cube* cube_create(float lower_bound[3],
-        float upper_bound[3],
-        uint32_t level)
-{
-    Cube* cube;
-
-    cube = (Cube*)malloc(sizeof(Cube));
-    if(cube){
-       cube_init(cube, lower_bound, upper_bound, level);
-    }
-
-    return cube;
-}
-
 void cube_init(Cube* cube,
         float lower_bound[3],
         float upper_bound[3],
-        uint32_t level)
-{
-    memcpy(cube->lower_bound, lower_bound, sizeof(float)*3);
-    memcpy(cube->upper_bound, upper_bound, sizeof(float)*3);
-    cube->level = level;
-    cube->cube_index = 0;
-}
+        uint32_t level);
 
-void cube_destroy(Cube *cube){
-    free(cube);
-}
+Cube* cube_create(float lower_bound[3],
+        float upper_bound[3],
+        uint32_t level);
+
+
+void cube_destroy(Cube *cube);
 
 #endif
 

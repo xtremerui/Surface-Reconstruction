@@ -15,6 +15,10 @@
 
 #include "mc_cubestack.h"
 
+#include "stdio.h"
+
+#define NULL 0
+
 /*
  *---------------------------------------------------------
  *
@@ -35,16 +39,16 @@ void mc_cbstack_push (Cube* cube){
 
 Cube* mc_cbstack_pop (){
     Cube *result;
-    result = cube_stack.lh_first;
+    result = cube_stack.slh_first;
     if(result){
-        SLIST_REMOVE_HEAD(result, entries);
+        SLIST_REMOVE_HEAD(&cube_stack, stack_entry);
     }
 
     return result;
 }
 
 int mc_cbstack_isempty (){
-    return SLIST_EMPTY(&cube_stack);
+    return (cube_stack.slh_first == 0);
 }
 
 

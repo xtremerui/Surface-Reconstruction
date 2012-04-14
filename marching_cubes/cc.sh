@@ -1,2 +1,2 @@
-g++ -I ../mesh -I ../mathwork -I ./include src/*.cpp -o ./bin/mc.o
+g++ -I ../mesh -I ../mathwork -I ./include src/*.cpp -c
 

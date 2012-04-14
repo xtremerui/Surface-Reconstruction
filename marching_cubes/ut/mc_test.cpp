@@ -18,14 +18,10 @@
 #include "marchingcubes.h"
 
 /* a ball of radius=2 */
-float isolvl_fn (float x, float y, float x){
-    float t = sqrt(x * x + y * y + z * z) - 12.0;
+float isolvl_fn (float x, float y, float z){
+    float t = sqrt(x * x + y * y + z * z) - 2.0*sqrt(3.0);
 
-    if(t > 0.0){
-        return t;
-    } else {
-        return (-1.0)*t;
-    }
+    return t;
 }
 
 int main(int argc, char *argv[]){

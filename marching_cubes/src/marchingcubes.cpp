@@ -31,7 +31,7 @@
  */
 
 static void
-compute_cube_isolvl(Cube *cube, isolvl_function isolvl_fn)
+compute_cube_isolvl(Cube *cube, isolvl_function isolvl_fn, float threshold)
 {
     float isolvl[8];
     float v_pos[2][3];
@@ -47,17 +47,19 @@ compute_cube_isolvl(Cube *cube, isolvl_function isolvl_fn)
     isolvl[2] = isolvl_fn(v_pos[1][0], v_pos[1][1], v_pos[0][2]);
     isolvl[3] = isolvl_fn(v_pos[0][0], v_pos[1][1], v_pos[0][2]);
     isolvl[4] = isolvl_fn(v_pos[0][0], v_pos[0][1], v_pos[1][2]);
-    isolvl[6] = isolvl_fn(v_pos[1][0], v_pos[0][1], v_pos[1][2]);
-    isolvl[7] = isolvl_fn(v_pos[1][0], v_pos[1][1], v_pos[1][2]);
-    isolvl[8] = isolvl_fn(v_pos[0][0], v_pos[1][1], v_pos[1][2]);
+    isolvl[5] = isolvl_fn(v_pos[1][0], v_pos[0][1], v_pos[1][2]);
+    isolvl[6] = isolvl_fn(v_pos[1][0], v_pos[1][1], v_pos[1][2]);
+    isolvl[7] = isolvl_fn(v_pos[0][0], v_pos[1][1], v_pos[1][2]);
 
     /* compute cube index */
     cube_index = 0;
     for(int i = 0; i < 8; i++){
-        if(cube->isolvl[i] < threshold){
+        if(isolvl[i] < threshold){
             cube_index |= 1<<i;
         }
     }
+
+    printf("cube_index = %x\n", threshold, cube_index);
 
     /* record result */
     memcpy(cube->isolvl, isolvl, sizeof(float)*8);
@@ -76,7 +78,8 @@ process_cube(
     int *tri_index;
 
     /* skip cubes that are completely inside/outside surface */
-    if(cube->cube_index == 0 || cube->cube_index == 0xff){
+    if(cube->level > 3 && (cube->cube_index == 0 || cube->cube_index == 0xff)){
+        printf("not touching, skipping\n");
         return;
     }
 
@@ -88,7 +91,7 @@ process_cube(
             float tri_pos[3][3];
 
             for(int j = i; j < i+3; j++){
-                int *point = edge_table[tri_index[j]];
+                int *point = vertex_table[tri_index[j]];
                 float endpoint[2][3];
                 float ep_isolvl[2];
 
@@ -122,12 +125,17 @@ process_cube(
                 }
             }
 
-            /* FIXME: add to mesh */
+            /* FIXME: add to mesh 
             mesh->addTriangle(new Triangle( 
                     new Vertex(tri_pos[0][0], tri_pos[0][1], tri_pos[0][2]), 
                     new Vertex(tri_pos[1][0], tri_pos[1][1], tri_pos[1][2]),
                     new Vertex(tri_pos[2][0], tri_pos[2][1], tri_pos[2][2])));
+            */
+            for(int m = 0; m < 3; m++){
+                printf("v %f %f %f\n", tri_pos[m][0], tri_pos[m][1], tri_pos[m][2]);
+            }
         }
+        return;
     }
 
     /* next level - subdivide cube into 8 smaller cubes */
@@ -164,6 +172,7 @@ process_cube(
                 /* allocate memory*/
                 sub_cube = (Cube *)malloc(sizeof(Cube));
                 if(!sub_cube){
+                    printf("out of memory\n");
                     exit(-1);
                 }
 
@@ -171,10 +180,10 @@ process_cube(
                 memcpy(sub_cube->lower_bound, new_bound[0], sizeof(float)*3);
                 memcpy(sub_cube->upper_bound, new_bound[1], sizeof(float)*3);
                 sub_cube->level = cube->level + 1;
-                compute_cube_isolvl(sub_cube, isolvl_fn);
+                compute_cube_isolvl(sub_cube, isolvl_fn, threshold);
 
                 /* push into stack */
-                SLIST_INSERT_HEAD(&cube_stack, cube, stack_entry);
+                mc_cbstack_push(sub_cube);
             }
         }
     }
@@ -210,7 +219,6 @@ int marchingcube(
     if(!root_cube){
         return -2;
     }
-    memset(root_cube->cube_pos, 0, sizeof(uint64_t)*3);
 
     /* initialize mesh */
     *result = new Mesh();
@@ -220,12 +228,14 @@ int marchingcube(
     }
     
     /* push into cube */
-    compute_cube_isolvl(root_cube, isolvl_fn);
+    compute_cube_isolvl(root_cube, isolvl_fn, isolvl_threshold);
     mc_cbstack_push(root_cube);
 
     /* main loop */
+    printf("starting MC\n");
     while(!mc_cbstack_isempty()){
-        process_cube(mc_cbstack_pop(), level, isolvl_fn, isolvl_threshold, result);
+        printf("processing cube\n");
+        process_cube(mc_cbstack_pop(), level, isolvl_fn, isolvl_threshold, *result);
     }
 
     return 0;
