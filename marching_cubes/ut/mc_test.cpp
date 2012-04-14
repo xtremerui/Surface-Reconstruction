@@ -29,14 +29,14 @@ int main(int argc, char *argv[]){
     Mesh *result;
     int rc;
 
-    bound[0][0] = -3.0;
-    bound[0][1] = -3.0;
-    bound[0][2] = -3.0;
-    bound[1][0] = 3.0;
-    bound[1][1] = 3.0;
-    bound[1][2] = 3.0;
+    bound[0][0] = -4.0;
+    bound[0][1] = -4.0;
+    bound[0][2] = -4.0;
+    bound[1][0] = 4.0;
+    bound[1][1] = 4.0;
+    bound[1][2] = 4.0;
 
-    rc = marchingcube(bound[0], bound[1], 5, isolvl_fn, 0.0, &result);
+    rc = marchingcube(bound[0], bound[1], 2, isolvl_fn, 0.0, &result);
 
     //FIXME: output mesh
     return 0;

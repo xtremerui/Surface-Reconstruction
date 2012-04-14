@@ -20,6 +20,7 @@
 #include <math.h>
 #include "Eigen/Core"
 #include "Eigen/Eigen"
+#include "marchingcubes.h"
 
 using namespace std;
 using namespace Eigen;
@@ -43,7 +44,7 @@ int show_text = 1;
 float obj_rotate[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 float view_rotate[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 float obj_pos[] = { 0.0, 0.0, 0.0 };
-char *string_list[] = {"flat shaded", "smooth shaded", "wireframe", "shaded with edges"};
+const char *string_list[] = {"flat shaded", "smooth shaded", "wireframe", "shaded with edges"};
 int option = 0;
 int curr_string = 0;
 
@@ -106,7 +107,7 @@ GLfloat light1_position[] = {-1.0f, -1.0f, 1.0f, 0.0f};
 
 GLfloat lights_rotation[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 
-
+Vertex tmp_v;
 
 bool sortFunction(const Edge* e1, const Edge* e2)
 {
@@ -166,13 +167,24 @@ float SDF (Vertex* p){
 	}
 
 	// f(p) = (p-oi).ni
-	float shortDisc;
+	float shortDisc = 0.0;
 	float diff[]={p->x()-closestCen->x(), p->y()-closestCen->y(),p->z()-closestCen->z()};
 	MathWork::dotProduct(diff, 3, closestCen->floatNormal(),&shortDisc);
+
+    printf("shordisc = %f\n", shortDisc);
 
 	return shortDisc;
 
 }
+
+static float isolvl_fn (float x, float y, float z){
+    /*
+    tmp_v.set(x, y, z);
+    return SDF(&tmp_v);
+    */
+    return sqrt(x*x+y*y+z*z)-sqrt(3.0)*0.5;
+}
+
 /**************IO function********************/
 
 void read(FILE *f)
@@ -624,7 +636,28 @@ void control_cb( int control )
 
 		// signed distance
 
+        mesh->setMinMaxValues();
+        float bound[2][3];
+        bound[0][0] = mesh->XMin()*1.2;
+        bound[0][1] = mesh->YMin()*1.2;
+        bound[0][2] = mesh->ZMin()*1.2;
+        bound[1][0] = mesh->XMax()*1.2;
+        bound[1][1] = mesh->YMax()*1.2;
+        bound[1][2] = mesh->ZMax()*1.2;
+        Mesh *new_mesh;
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; j < 3; j++){
+                printf("\nbound[%d][%d]=%f\n", i, j, bound[i][j]);
+            }
+        }
+        int rc = marchingcube(bound[0], bound[1], 6, isolvl_fn, 0.0, &new_mesh);
 
+        if(rc){
+            free(new_mesh);
+        } else {
+            free(mesh);
+            mesh = new_mesh;
+        }
 
         showEdges = true;
 
@@ -936,7 +969,7 @@ void myGlutDisplay( void )
     	if (!showEdges)
     		displayPoints();
     	else
-    		displayEdges();
+    		displayMesh();
     }
     glPopMatrix();
     // Force re-render the object in case a new file is loaded

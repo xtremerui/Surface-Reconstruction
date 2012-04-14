@@ -54,12 +54,12 @@ compute_cube_isolvl(Cube *cube, isolvl_function isolvl_fn, float threshold)
     /* compute cube index */
     cube_index = 0;
     for(int i = 0; i < 8; i++){
-        if(isolvl[i] < threshold){
+        if(isolvl[i] > threshold){
             cube_index |= 1<<i;
         }
     }
 
-    printf("cube_index = %x\n", threshold, cube_index);
+    //printf("cube_index = %x\n", threshold, cube_index);
 
     /* record result */
     memcpy(cube->isolvl, isolvl, sizeof(float)*8);
@@ -79,7 +79,7 @@ process_cube(
 
     /* skip cubes that are completely inside/outside surface */
     if(cube->level > 3 && (cube->cube_index == 0 || cube->cube_index == 0xff)){
-        printf("not touching, skipping\n");
+        //printf("not touching, skipping\n");
         return;
     }
 
@@ -95,18 +95,18 @@ process_cube(
                 float endpoint[2][3];
                 float ep_isolvl[2];
 
-                /* compute coordinate & iso-level of two endpoints */
+                /* FIXME:compute coordinate & iso-level of two endpoints */
                 for(int k = 0; k < 2; k++){
-                    int tmp = point[k] & 0x3;
+                    int tmp = point[k] % 4;
                     if(tmp < 2){
-                        endpoint[k][0] = cube->lower_bound[0];
-                    } else {
-                        endpoint[k][0] = cube->upper_bound[0];
-                    }
-                    if(tmp == 0 || tmp == 3){
                         endpoint[k][1] = cube->lower_bound[1];
                     } else {
                         endpoint[k][1] = cube->upper_bound[1];
+                    }
+                    if(tmp == 0 || tmp == 3){
+                        endpoint[k][0] = cube->lower_bound[0];
+                    } else {
+                        endpoint[k][0] = cube->upper_bound[0];
                     }
                     if(point[k]<4){
                         endpoint[k][2] = cube->lower_bound[2];
@@ -125,15 +125,17 @@ process_cube(
                 }
             }
 
-            /* FIXME: add to mesh 
+            /* add to mesh */
+            printf("MC: Triangle pushed\n");
             mesh->addTriangle(new Triangle( 
                     new Vertex(tri_pos[0][0], tri_pos[0][1], tri_pos[0][2]), 
                     new Vertex(tri_pos[1][0], tri_pos[1][1], tri_pos[1][2]),
                     new Vertex(tri_pos[2][0], tri_pos[2][1], tri_pos[2][2])));
-            */
+            /*
             for(int m = 0; m < 3; m++){
                 printf("v %f %f %f\n", tri_pos[m][0], tri_pos[m][1], tri_pos[m][2]);
             }
+            */
         }
         return;
     }
@@ -234,10 +236,11 @@ int marchingcube(
     /* main loop */
     printf("starting MC\n");
     while(!mc_cbstack_isempty()){
-        printf("processing cube\n");
+        //printf("processing cube\n");
         process_cube(mc_cbstack_pop(), level, isolvl_fn, isolvl_threshold, *result);
     }
 
+    printf("MC completed\n");
     return 0;
 }
 

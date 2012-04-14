@@ -42,6 +42,7 @@ void Vertex::set(float x, float y, float z)
 	data.value[0]=x;
 	data.value[1]=y;
 	data.value[2]=z;
+    vNormal = NULL;
 }
 
 void Vertex::addEdge(Edge* edge)
