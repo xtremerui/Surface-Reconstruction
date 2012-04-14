@@ -168,21 +168,20 @@ float SDF (Vertex* p){
 
 	// f(p) = (p-oi).ni
 	float shortDisc = 0.0;
+    const float *normal = closestCen->floatNormal();
 	float diff[]={p->x()-closestCen->x(), p->y()-closestCen->y(),p->z()-closestCen->z()};
-	MathWork::dotProduct(diff, 3, closestCen->floatNormal(),&shortDisc);
-
-    printf("shordisc = %f\n", shortDisc);
+    for(int i = 0; i < 3; i++){
+        shortDisc += diff[i]*normal[i];
+    }
 
 	return shortDisc;
 
 }
 
 static float isolvl_fn (float x, float y, float z){
-    /*
     tmp_v.set(x, y, z);
     return SDF(&tmp_v);
-    */
-    return sqrt(x*x+y*y+z*z)-sqrt(3.0)*0.5;
+    //return sqrt(x*x+y*y+z*z)-sqrt(3.0)*0.5;
 }
 
 /**************IO function********************/

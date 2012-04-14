@@ -26,7 +26,7 @@ MC = marching_cubes/mc_cube.o \
     marching_cubes/mc_cubestack.o \
     marching_cubes/marchingcubes.o
 
-MC_TEST = marching_cubes/ut/me_test
+MC_TEST = marching_cubes/ut/mc_test
 
 all: GLUT MC_UT
 
