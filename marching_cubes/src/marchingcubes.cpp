@@ -161,6 +161,7 @@ process_cube(
 
             for(int z = 0; z < 2; z++){
                 Cube *sub_cube;
+                uint64_t mc_index = 0;
 
                 if(z == 0){
                     new_bound[0][2] = cube->lower_bound[2];
@@ -221,6 +222,7 @@ int marchingcube(
     if(!root_cube){
         return -2;
     }
+    root_cube->mc_index = 0;
 
     /* initialize mesh */
     *result = new Mesh();

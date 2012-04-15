@@ -45,6 +45,17 @@ void Mesh::addTriangle(Triangle *t)
 	triangles->push_back(t);
 }
 
+Vertex *Mesh::findVertex(uint64_t index)
+{
+    list<Vertex*>::iterator iv;
+    for (iv=vertices->begin(); iv != vertices->end(); iv++){
+        if ((*iv)->index == index) {
+            return (*iv);
+        }
+    }
+    return NULL;
+}
+
 void Mesh::addVertex(Vertex *v)
 {
 	vertices->push_back(v);

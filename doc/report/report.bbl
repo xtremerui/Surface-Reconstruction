@@ -1,0 +1,11 @@
+\begin{thebibliography}{}
+\bibitem[\protect\citeauthoryear{W. Lorensen and H.Cline}{Lorensen et~al\mbox{.}}{1987}]{Lorensen-87}
+{\sc Lorensen, W.}, {\sc and} {\sc Cline, H.} 1987.
+\newblock Marching Cubes: A High Resolution 3D Surface Construction Algorithm.
+\newblock Computer Graphics, 21(4):163-9, 1987.
+
+\bibitem[\protect\citeauthoryear{H. Hoppe, T. DeRose, T. Duchamp, J. McDonald, and W. Stuetzle}{Hoppe et~al\mbox{.}}{1992}]{Hoppe-92}
+{\sc Hoppe, H.}, {\sc DeRose, T.}, {\sc Duchamp, T.}, {\sc McDonald, J.}, {\sc and} {\sc Stuetzle, W.} 1992.
+\newblock Surface reconstruction from unorganized points.
+\newblock Computer Graphics (SIGGRAPH ’92 Proceedings), 26(2):71–78, July 1992.
+\end{thebibliography}
