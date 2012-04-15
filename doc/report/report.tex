@@ -42,18 +42,61 @@ Bottom stuff goes here.
 \maketitle
 
 \section{Introduction}
-Background. 
-The interest part. 
-The hard part.
+The problem we are focusing here is a subset of surface reconstruction problems, which \\
+Background. \\
+The interest part.  \\
+The hard part. \\
 
 \section{Algorithms}
-Describe Input here. And how these algorithms are connected.
+Describe Input here. \\
+What does each algorithms do \\
+how these algorithms are connected. (What do they contribute to the whole implementation.)
 \subsection{K Nearest Neighbours}
 \subsection{Principle Component Analysis}
-\subsection{Euclidean Mininal Spanning Tree}
+\subsection{K Euclidean Mininal Spanning Tree}
+What is $k$-EMST, how it is different from normal EMST
 \subsection{Normal Propagation}
 \subsection{Marching Cubes}
 what each algorithm is doing.
+\begin{algorithm}[t]
+\SetAlgoNoLine
+\KwIn{Iso-level function, initial bounding cube, and maximum sub-divide level}
+\KwOut{Result triangulated mesh}
+$CubeStack$ = $\emptyset$; $Level$ = 0;
+$Mesh$ = $\emptyset$\;
+$InitialBoundingBox.Level$ = 0\;
+$CubeStack$.push($InitialBoundingBox$)\;
+\Repeat{$CubeStack$ is empty}{
+	$CurrentCube$ = $CubeStack$.pop()\;
+	
+	Compute iso-level on each endpoints of $CurrentCube$\;
+	\If{(iso-level on endpoints are all positive) \text{or}\\\ \ \ (iso-level on endpoints are all negative)}{
+		Continue\;
+	}
+	\
+
+}
+{
+        $Rnd_{\alpha}$ = Random($ID_{\alpha}$, $index$)\;
+        $Found$ = $TRUE$\;
+        \For{each node $\beta$ in $\alpha$'s two communication hops
+    }{
+      $Rnd_{\beta}$ = Random($ID_{\beta}$, $index$)\;
+      \If{($Rnd_{\alpha} < Rnd_{\beta}$) \text{or} ($Rnd_{\alpha}$ ==
+          $Rnd_{\beta}$ \text{and} $ID_{\alpha} < ID_{\beta}$)\;
+      }{
+        $Found$ = $FALSE$; break\;
+      }
+        }
+     \eIf{$Found$}{
+           $FreNum_{\alpha}$ = $index$\;
+         }{
+           $index$ ++\;
+     }
+}
+\caption{Marching Cubes Algorithms}
+\label{alg:one}
+\end{algorithm}
 
 \section{Performance}
 How our algorithms are doing.
@@ -63,11 +106,23 @@ How our algorithms are doing.
 
 \section{Discussion}
 Why some of the output are bad, and why they cannot be solved for now.
-\subsection{}
+\subsection{Variety of Input}
+explain why horse.smf cannot be used as an input \\
+how the result can be
+
+\subsection{Iteration Methods of Marching Cubes}
+divide and conquer vs. normal iteration (pros and cons) \\
+explain possible holes in out implementation
+
+\subsection{Size of Marching Cubes}
 
 \section{Further Improvements}
 What we have omitted. What can be done better
 \subsection{Spacial Sensitive Structure}
+How can our work be improved by using a better datastructure
+\subsection{Refinement of Output Mesh}
+The result mesh of our current implementation is composed of standalone triangles, i.e. Each vertex is included in only one triangle. This problem limits further processing of the output mesh. It can be solved by indexing all the vertices, and avoid generating a new vertex if one has existed at the same position.
+\subsection{Cube Ambiguity Problem}
 
 
 
