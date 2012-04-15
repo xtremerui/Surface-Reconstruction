@@ -1,6 +1,9 @@
 .*
 !.gitignore
 *.o
+*~
+*.swp
+
 tags
 mcaq
 mc_test
