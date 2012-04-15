@@ -44,7 +44,7 @@ int show_text = 1;
 float obj_rotate[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 float view_rotate[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 float obj_pos[] = { 0.0, 0.0, 0.0 };
-const char *string_list[] = {"flat shaded", "smooth shaded", "wireframe", "shaded with edges"};
+const char *string_list[] = {"flat shaded", "wireframe", "shaded with edges"};
 int option = 0;
 int curr_string = 0;
 
@@ -351,13 +351,10 @@ void control_cb( int control )
 			displayMode = 1; // flat shaded
 			break;
 		case 1:
-			displayMode = 2; // smooth shaded
+			displayMode = 2; // wireframe
 			break;
 		case 2:
-			displayMode = 3; // wireframe
-			break;
-		case 3:
-			displayMode = 4; // shaded with wireframe
+			displayMode = 3; // shaded with wireframe
 			break;
 		};
 	}
@@ -867,26 +864,7 @@ void displayMesh(){
 			      }
 			      break;
 
-		    case 2://smooth shaded
-			      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			      for (it=triangles->begin(); it != triangles->end(); it++)
-			      {
-			    	  glBegin(GL_TRIANGLES);
-                      // Fetch each vertex normal for all 3 vertices
-			    	  glNormal3fv( (GLfloat*) (*it)->vertices[0]->floatNormal() );
-			    	  glVertex3fv( (GLfloat*) (*it)->vertices[0]->floatData() );
-
-			    	  glNormal3fv( (GLfloat*) (*it)->vertices[1]->floatNormal() );
-			    	  glVertex3fv( (GLfloat*) (*it)->vertices[1]->floatData() );
-
-			    	  glNormal3fv( (GLfloat*) (*it)->vertices[2]->floatNormal() );
-			    	  glVertex3fv( (GLfloat*) (*it)->vertices[2]->floatData() );
-
-				      glEnd();
-				  }
-			      break;
-
-		    case 3://wireframe
+		    case 2://wireframe
 		    	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			    for (it=triangles->begin(); it != triangles->end(); it++)
 			    {
@@ -902,7 +880,7 @@ void displayMesh(){
 			  }
 			  break;
 
-		    case 4://shaded with edges
+		    case 3://shaded with edges
 		    	for (it=triangles->begin(); it != triangles->end(); it++)
 		    	{
 		    		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -1147,7 +1125,7 @@ int main(int argc, char* argv[])
 
     listbox = new GLUI_Listbox( view_panel, "Mode:", &curr_string, MODE_ID, control_cb );
     int i;
-    for( i=0; i<4; i++ )
+    for( i=0; i<3; i++ )
       listbox->add_item( i, string_list[i] );
 
     new GLUI_StaticText( glui, "" );
