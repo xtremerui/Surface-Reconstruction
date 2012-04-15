@@ -8,6 +8,7 @@
 #include "triangle.h"
 #include "edge.h"
 //#include <utility>
+#include <stdint.h>
 
 #include "mathwork.h"
 
@@ -52,7 +53,7 @@ public:
 	float y(void) const;
 	float z(void) const;
 
-	int index;
+	uint64_t index;
 	float disc;
 	list<Vertex*> kNNbr;
 
@@ -61,7 +62,6 @@ private:
 	MathWork Q;
 	list<Edge*> edges;
 	list<Triangle*> triangles;
-
 };
 
 #endif

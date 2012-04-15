@@ -33,6 +33,7 @@ typedef struct cube_s {
     float isolvl[8];
     uint8_t level;
     uint8_t cube_index;
+    uint64_t mc_index[3];
 } Cube;
 
 

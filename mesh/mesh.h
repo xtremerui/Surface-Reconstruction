@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "triangle.h"
 #include "vertex.h"
@@ -33,6 +34,8 @@ public:
 	void remove(Vertex *v);
     void remove(Edge *e);
     void remove(Triangle *t);
+
+    Vertex* findVertex(uint64_t);
 
 	list<Vertex*>* getVertices(void) const;
 	list<Triangle*>* getTriangles(void) const;
