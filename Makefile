@@ -9,7 +9,7 @@ CC = g++
 # executable file name
 EXE = mcaq
 
-CPPFLAGS = $(INCPATH) -O2 -g
+CPPFLAGS = $(INCPATH) -O2
 
 LIBS_GLUT = -lGL -lGLU -lglut -lglui
 
@@ -31,38 +31,38 @@ MC_TEST = marching_cubes/ut/mc_test
 all: GLUT MC_UT
 
 GLUT: $(GLUT) $(MESH) $(VEC) $(MC)
-	$(CC) $? $(LIBPATH) $(LIBS_GLUT) -o $(EXE) -g
+	$(CC) $? $(LIBPATH) $(LIBS_GLUT) -o $(EXE) 
 
 MC_UT: $(MESH) $(MC) $(VEC) marching_cubes/ut/mc_test.cpp ;\
-    $(CC) -o $(MC_TEST) $? $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -g
+    $(CC) -o $(MC_TEST) $? $(INCPATH) $(LIBPATH) $(LIBS_GLUT) 
 
 $(GLUT): mcaq.cpp ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 mesh/vertex.o: mesh/vertex.cpp mesh/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 mesh/edge.o: mesh/edge.cpp mesh/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 mesh/triangle.o: mesh/triangle.cpp mesh/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 mesh/mesh.o: mesh/mesh.cpp mesh/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 
 $(VEC): mathwork/mathwork.cpp mathwork/mathwork.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 marching_cubes/mc_cube.o: marching_cubes/src/mc_cube.cpp marching_cubes/include/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 marching_cubes/mc_cubestack.o: marching_cubes/src/mc_cubestack.cpp marching_cubes/include/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 marching_cubes/marchingcubes.o: marching_cubes/src/marchingcubes.cpp marching_cubes/include/*.h ;\
-    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c -g
+    $(CC) -o $@ $< $(INCPATH) $(LIBPATH) $(LIBS_GLUT) -c 
 
 
 clean: ;\

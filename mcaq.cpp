@@ -173,7 +173,7 @@ float SDF (Vertex* p){
 			minDisc = temp;
 		}
 	}
-	if (thre< minDisc)
+	if (thre< minDisc && 0)
 		return 1;
 	//printf("minDisc:%f ", minDisc);fflush(stdout);
 	// f(p) = (p-oi).ni
