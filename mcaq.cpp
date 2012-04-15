@@ -1089,7 +1089,7 @@ int main(int argc, char* argv[])
   glutInitWindowPosition( 50, 50 );
   glutInitWindowSize( 800, 650 );
  
-  main_window = glutCreateWindow( "SMF Viewer -- Rui Yang 764 Assignment 1" );
+  main_window = glutCreateWindow( "SMF Viewer -- Final Project" );
   glutDisplayFunc( myGlutDisplay );
   GLUI_Master.set_glutReshapeFunc( myGlutReshape );  
   GLUI_Master.set_glutKeyboardFunc( myGlutKeyboard );
