@@ -78,7 +78,7 @@ process_cube(
     int *tri_index;
 
     /* skip cubes that are completely inside/outside surface */
-    if(cube->level > 3 && (cube->cube_index == 0 || cube->cube_index == 0xff)){
+    if(cube->level > (lvl_max-1) && (cube->cube_index == 0 || cube->cube_index == 0xff)){
         //printf("not touching, skipping\n");
         return;
     }
@@ -126,7 +126,7 @@ process_cube(
             }
 
             /* add to mesh */
-            printf("MC: Triangle pushed\n");
+           // printf("MC: Triangle pushed\n");
             mesh->addTriangle(new Triangle( 
                     new Vertex(tri_pos[0][0], tri_pos[0][1], tri_pos[0][2]), 
                     new Vertex(tri_pos[1][0], tri_pos[1][1], tri_pos[1][2]),

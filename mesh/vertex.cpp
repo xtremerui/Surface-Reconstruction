@@ -146,6 +146,19 @@ void Vertex::addNormal(const MathWork *norm)
 	vNormal->normalise();
 }
 
+void Vertex::setNormal(const MathWork *norm)
+{
+	if (vNormal == NULL)
+		vNormal = new MathWork();
+	// Add the passed in surface normal to this vertex
+	// and normalise the vertex
+	vNormal->value[0] = norm->value[0];
+	vNormal->value[1] = norm->value[1];
+	vNormal->value[2] = norm->value[2];
+
+	vNormal->normalise();
+}
+
 void Vertex::calNormal(void)
 {
 	delete vNormal;

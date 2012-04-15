@@ -54,9 +54,11 @@ int curr_string = 0;
 Mesh *mesh;
 list<Triangle*> *listTriangles;
 list<Vertex*>   *listVertices;
+float thre;
 vector<Vertex*> vertexIndex;
 list<Edge*> result;
 list<Edge*> result1;
+list<Edge*> testNormal;
 list<Vertex*> tangentPlnCen;
 
 Triangle *tri;
@@ -70,7 +72,7 @@ const char *filename;
 int dec_num;
 bool showEdges = false;
 
-#define K_NEAREST_NBR 8
+#define K_NEAREST_NBR 15
 /** Pointers to the GLUI windows and controls **/
 
 GLUI            *glui;
@@ -111,7 +113,12 @@ Vertex tmp_v;
 
 bool sortFunction(const Edge* e1, const Edge* e2)
 {
-	return e1->weight<e2->weight;
+	return e1->weight < e2->weight;
+}
+
+bool sortVertices(const Vertex* v1, const Vertex* v2)
+{
+	return v1->disc < v2->disc;
 }
 
 void DFS (Vertex* v , bool visited[])
@@ -155,31 +162,40 @@ float distance (Vertex* p1, Vertex* p2){
 float SDF (Vertex* p){
 	// find the closest tangent plane center oi
 	list<Vertex*>::iterator iv;
-	Vertex* closestCen = *tangentPlnCen.begin();
+	Vertex* closestCen = *(tangentPlnCen.begin());
 	float minDisc = distance (p, closestCen);
-
+	//printf("p: %f %f %f ", p->x(),p->y(),p->z());
 	for(iv = tangentPlnCen.begin(); iv!= tangentPlnCen.end();iv++){
 		float temp = distance (p, *iv);
         //printf("d:%f ", temp);fflush(stdout);
-		if (minDisc > temp)
+		if (minDisc > temp){
 			closestCen = *iv;
-
+			minDisc = temp;
+		}
 	}
-
+	if (thre< minDisc)
+		return 1;
+	//printf("minDisc:%f ", minDisc);fflush(stdout);
 	// f(p) = (p-oi).ni
 	float shortDisc = 0.0;
     const float *normal = closestCen->floatNormal();
+    //for(int i = 0; i < 3; i++)
+    	//printf("normal: %f ", normal[i]);
 	float diff[]={p->x()-closestCen->x(), p->y()-closestCen->y(),p->z()-closestCen->z()};
     for(int i = 0; i < 3; i++){
         shortDisc += diff[i]*normal[i];
     }
 
+
+    //printf("%f", shortDisc);
 	return shortDisc;
 
 }
 
 static float isolvl_fn (float x, float y, float z){
+	//printf("tmp: %f %f %f ", tmp_v.x(),tmp_v.y(),tmp_v.z());
     tmp_v.set(x, y, z);
+    //printf("tmp1: %f %f %f ", tmp_v.x(),tmp_v.y(),tmp_v.z());
     return SDF(&tmp_v);
     //return sqrt(x*x+y*y+z*z)-sqrt(3.0)*0.5;
 }
@@ -354,17 +370,16 @@ void control_cb( int control )
 
 		list<Vertex*>::iterator iv1;
 
-
+        thre = -1;
 		for (iv1=vertices->begin(); iv1 != vertices->end(); iv1++)
 		{
 			list<Vertex*>::iterator iv2;
 			list<Vertex*> kNNbr;
+			kNNbr.clear();
 			//printf("before:%d\n", kNNbr.size());fflush(stdout);
-			for (iv2=vertices->begin(); iv2 != vertices->end(); iv2++)
+			/*for (iv2=vertices->begin(); iv2 != vertices->end(); iv2++)
 			{
-				(*iv2)->disc = ((*iv1)->x()-(*iv2)->x())*((*iv1)->x()-(*iv2)->x()) +
-						((*iv1)->y()-(*iv2)->y())*((*iv1)->y()-(*iv2)->y())+
-						((*iv1)->z()-(*iv2)->z())*((*iv1)->z()-(*iv2)->z());
+				(*iv2)->disc = distance(*iv1,*iv2);
 				if (kNNbr.size() < K_NEAREST_NBR){
 					kNNbr.push_back((*iv2));
 
@@ -381,7 +396,23 @@ void control_cb( int control )
 						}
 					}
 				}
+			}*/
+			for (iv2=vertices->begin(); iv2 != vertices->end(); iv2++)
+				(*iv2)->disc = distance((*iv1),(*iv2));
+
+			vector<Vertex*> temp(vertices->begin(), vertices->end());
+			sort(temp.begin(),temp.end(),sortVertices);
+			if (thre < temp[1]->disc)
+				thre = temp[1]->disc;
+
+			//printf("first: %f ", temp[0]->disc);
+			for (int i=1;i<K_NEAREST_NBR+1;i++){
+				//printf("next 15: %f ", temp[i]->disc);
+					kNNbr.push_back(temp[i]);
+
+
 			}
+			//printf("knn size: %d ",kNNbr.size());
             // save the final set of k nearest neighbor to Xi
             (*iv1)->kNNbr = kNNbr;
 
@@ -426,8 +457,30 @@ void control_cb( int control )
 
               // get the covariance matrix
               MatrixXd Covariance = MatrixXd::Zero(n, n);
-              Covariance =  DataPoints.transpose() * DataPoints ;
+             // MatrixXd Covariance1 = MatrixXd::Zero(n, n);
+              Covariance =  (1/(double)n)* DataPoints.transpose() * DataPoints ;
             //  std::cout << Covariance ;
+             /* for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
+                   float x = (*iv3)->x()-oi->x();
+                   float y = (*iv3)->y()-oi->y();
+                   float z = (*iv3)->z()-oi->z();
+                   Covariance1(0,0) += x*x;
+                   Covariance1(0,1) += x*y;
+                   Covariance1(0,2) += x*z;
+                   Covariance1(1,0) += y*x;
+                   Covariance1(1,1) += y*y;
+                   Covariance1(1,2) += y*z;
+                   Covariance1(2,0) += z*x;
+                   Covariance1(2,1) += z*y;
+                   Covariance1(2,2) += z*z;
+                          }*/
+             // Covariance1 = (1/(double)n)*Covariance1;
+
+              /*for(int i=0;i<n;i++)
+            	  for(int j=0;j<n;j++){
+            		  printf("c[%d][%d]:%f ", i,j,Covariance(i,j));
+            		 // printf("c1: %f", Covariance1(i,j));
+            	  }*/
 
               // compute the eigenvalue on the Cov Matrix
               EigenSolver<MatrixXd> m_solve(Covariance);
@@ -444,70 +497,76 @@ void control_cb( int control )
             	  pi.push_back(std::make_pair(eigenvalues(i), i));
 
               sort(pi.begin(), pi.end());
-              //printf("s");
-              /*for (unsigned int i = 0; i < n ; i++){
+             // printf("start");
+/*
+              for (unsigned int i = 0; i < n ; i++){
+
             	  printf("eigen=%f" , pi[i].first );
 					printf(" pi= %d" ,pi[i].second );
-              }*/
-
+				    printf(" v[%d] =[%f %f %f]\n",i, eigenVectors.col(pi[i].second)(0),
+							 eigenVectors.col(pi[i].second)(1),
+							 eigenVectors.col(pi[i].second)(2));
+              }
+*/
               MathWork* ni = new MathWork();
               ni->value[0] = eigenVectors.col(pi[0].second)(0);
               ni->value[1] = eigenVectors.col(pi[0].second)(1);
               ni->value[2] = eigenVectors.col(pi[0].second)(2);
 
-              /*for (unsigned int i = 0; i < n ; i++)
-            	  printf("nx=%f ny=%f nz=%f \n" , ni->value[0],ni->value[1],ni->value[2] );*/
+             /* ni->value[0]=oi->x();
+              ni->value[1]=oi->y();
+              ni->value[2]=oi->z();*/
+            	  //printf("nx=%f ny=%f nz=%f \n" , ni->value[0],ni->value[1],ni->value[2] );
 
+            //	  printf("end");
 
-
-              oi->addNormal(ni);
+              oi->setNormal(ni);
               tangentPlnCen.push_back(oi);
 		}
 		printf("tangentPlnCen size:%d ", tangentPlnCen.size());fflush(stdout);
+
 		// compute the k nearest neighbor of oi
 
 		for (iv1=tangentPlnCen.begin(); iv1 != tangentPlnCen.end(); iv1++)
 		{
 			list<Vertex*>::iterator iv2;
 			list<Vertex*> kNNbr;
-			//printf("before:%d\n", kNNbr.size());fflush(stdout);
-			for (iv2=tangentPlnCen.begin(); iv2 != tangentPlnCen.end(); iv2++)
-			{
-				(*iv2)->disc = ((*iv1)->x()-(*iv2)->x())*((*iv1)->x()-(*iv2)->x()) +
-						((*iv1)->y()-(*iv2)->y())*((*iv1)->y()-(*iv2)->y())+
-						((*iv1)->z()-(*iv2)->z())*((*iv1)->z()-(*iv2)->z());
-				if (kNNbr.size() < K_NEAREST_NBR){
-					kNNbr.push_back((*iv2));
 
-				}
-				else{
-					list<Vertex*>::iterator iv3;
-					for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
-						// replace the point in the set with a new point if that new point has less
-						// distance to Oi
-						if ((*iv2)->disc < (*iv3)->disc){
-							// might be wrong here! warning !!!!!!!!!
-							*iv3 = *iv2;
-							break;
-						}
-					}
-				}
+			for (iv2=tangentPlnCen.begin(); iv2 != tangentPlnCen.end(); iv2++){
+				(*iv2)->disc = distance((*iv1),(*iv2));
+				/*if ((*iv2)->index < (*iv1)->index){
+					float disc = distance((*iv1),(*iv2));
+					e = new Edge(*iv1,*iv2);
+					e->weight = disc;
+					mesh->addEdge(e);
+				}*/
+
 			}
+			vector<Vertex*> temp(tangentPlnCen.begin(), tangentPlnCen.end());
+			sort(temp.begin(),temp.end(),sortVertices);
+
+			//printf("first: %f ", temp[0]->disc);
+			for (int i=1;i<K_NEAREST_NBR+1;i++){
+				//printf("next 15: %f ", temp[i]->disc);
+					kNNbr.push_back(temp[i]);
+
+
+			}
+
+			for (iv2=kNNbr.begin(); iv2 != kNNbr.end(); iv2++){
+				float disc = distance((*iv1),(*iv2));
+								e = new Edge(*iv1,*iv2);
+								e->weight = disc;
+								mesh->addEdge(e);
+
+
+						}
+
 			// save the final set of k nearest neighbor to Oi
 			(*iv1)->kNNbr = kNNbr;
 
-			// compute the weight of the kNNr points
-			list<Vertex*>::iterator iv3;
-			for (iv3 = kNNbr.begin() ; iv3 != kNNbr.end(); iv3++){
-
-				e = new Edge((*iv1),(*iv3));
-				e->weight = ((*iv1)->x()-(*iv3)->x())*((*iv1)->x()-(*iv3)->x()) +
-						((*iv1)->y()-(*iv3)->y())*((*iv1)->y()-(*iv3)->y())+
-						((*iv1)->z()-(*iv3)->z())*((*iv1)->z()-(*iv3)->z());;
-				//printf("%f ", e->weight);fflush(stdout);
-				mesh->addEdge(e);
-			}
 		}
+
 
 
 
@@ -633,6 +692,17 @@ void control_cb( int control )
 
 		DFS(oiWithMaxZ, visited);
 
+		for(iv1 = tangentPlnCen.begin(); iv1!= tangentPlnCen.end(); iv1++) {
+			Vertex* normalV = new Vertex((*iv1)->x()+0.05*(*iv1)->floatNormal()[0],
+					(*iv1)->y()+0.05*(*iv1)->floatNormal()[1],
+					(*iv1)->z()+0.05*(*iv1)->floatNormal()[2]);
+			/*for(int i=0;i<3;i++)
+				printf("n[%d]:%f ",i,(*iv1)->floatNormal()[i]);*/
+			Edge* normal = new Edge(*iv1, normalV);
+			testNormal.push_back(normal);
+
+		}
+
 		// signed distance
 
         mesh->setMinMaxValues();
@@ -644,11 +714,8 @@ void control_cb( int control )
         bound[1][1] = mesh->YMax()*1.2;
         bound[1][2] = mesh->ZMax()*1.2;
         Mesh *new_mesh;
-        for (int i = 0; i < 2; i++){
-            for (int j = 0; j < 3; j++){
-                printf("\nbound[%d][%d]=%f\n", i, j, bound[i][j]);
-            }
-        }
+
+
         int rc = marchingcube(bound[0], bound[1], 6, isolvl_fn, 0.0, &new_mesh);
 
         if(rc){
@@ -732,7 +799,7 @@ void displayPoints()
 	list<Vertex*>::iterator iv;
 
 	list<Vertex*>* vertices = mesh->getVertices();
-	for (iv=vertices->begin(); iv != vertices->end(); iv++)
+	for (iv=tangentPlnCen.begin(); iv != tangentPlnCen.end(); iv++)
     	{
 
 		glBegin(GL_POINTS);
@@ -757,6 +824,7 @@ void displayEdges()
 
 	        /*if ( (*ie)->vertices[0]->floatNormal() != NULL )
 	        	glNormal3fv( (GLfloat*) (*ie)->vertices[0]->floatNormal() );*/
+			glColor3f(1.0f, 0.0f, 0.0f);
 			glVertex3fv( (GLfloat*) (*ie)->vertices[0]->floatData() );
 			/*if ( (*ie)->vertices[1]->floatNormal() != NULL )
 				glNormal3fv( (GLfloat*) (*ie)->vertices[1]->floatNormal() );*/

@@ -47,6 +47,7 @@ public:
 	MathWork* getNormal(void);
 	void calNormal(void);
 	void addNormal(const MathWork *norm);
+	void setNormal(const MathWork *norm);
 
 	float x(void) const;
 	float y(void) const;
