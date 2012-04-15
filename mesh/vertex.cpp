@@ -3,6 +3,8 @@
 
 #include "vertex.h"
 
+#include <string.h>
+
 Vertex::Vertex(float x, float y, float z)
 { 
 	data.value[0]=x;
@@ -10,6 +12,16 @@ Vertex::Vertex(float x, float y, float z)
 	data.value[2]=z;
 	vNormal=NULL;
 
+}
+
+Vertex::Vertex(float x, float y, float z, uint64_t mc_index[3], uint8_t mc_type)
+{
+	data.value[0]=x;
+        data.value[1]=y;
+        data.value[2]=z;
+        vNormal=NULL;
+	memcpy(this->mc_index, mc_index, sizeof(uint64_t)*3);
+	this->mc_type = mc_type;
 }
 
 Vertex::Vertex()
@@ -20,6 +32,15 @@ Vertex::Vertex()
 Vertex::~Vertex()
 {
 	//delete vNormal;
+}
+
+Vertex* Vertex:: check_mc(uint64_t mc_index[3], uint8_t mc_type)
+{
+	if(!memcmp(mc_index, this->mc_index, sizeof(uint64_t)*3) && mc_type == this->mc_type){
+		return this;
+	} else {
+		return NULL;
+	}
 }
 
 bool Vertex::checkAndAddEdge(Edge* edge)

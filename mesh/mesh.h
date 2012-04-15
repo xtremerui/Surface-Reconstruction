@@ -35,7 +35,7 @@ public:
     void remove(Edge *e);
     void remove(Triangle *t);
 
-    Vertex* findVertex(uint64_t);
+    Vertex* findMCVertex(uint64_t mc_index[3], uint8_t mc_type);
 
 	list<Vertex*>* getVertices(void) const;
 	list<Triangle*>* getTriangles(void) const;

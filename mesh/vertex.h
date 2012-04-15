@@ -54,10 +54,14 @@ public:
 	float y(void) const;
 	float z(void) const;
 
+        Vertex(float x, float y, float z, uint64_t mc_index[3], uint8_t mc_type);
+	Vertex *check_mc(uint64_t mc_index[3], uint8_t mc_type);
+
 	uint64_t index;
 	float disc;
 	list<Vertex*> kNNbr;
-
+	uint64_t mc_index[3];
+	uint8_t mc_type;
 private:
 	MathWork *vNormal, data;
 	MathWork Q;

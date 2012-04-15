@@ -1162,7 +1162,7 @@ int main(int argc, char* argv[])
 
   GLUI_Translation *trans_z =
       new GLUI_Translation( camera_panel, "Zooming", GLUI_TRANSLATION_Z, &obj_pos[2] );
-    trans_z->set_speed( .005 );
+    trans_z->set_speed( .015 );
 
   GLUI_Translation *trans_xy =
       new GLUI_Translation(camera_panel, "XY Translation", GLUI_TRANSLATION_XY, obj_pos );

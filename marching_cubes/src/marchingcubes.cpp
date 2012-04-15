@@ -89,6 +89,11 @@ process_cube(
         /* each triangle */
         for(int i = 0; tri_index[i] != -1; i+=3){
             float tri_pos[3][3];
+            Vertex *tri_v[3];
+            uint64_t mc_index[3];
+	    uint8_t mc_type;
+
+            memcpy(mc_index, cube->mc_index, sizeof(uint64_t)*3);
 
             for(int j = i; j < i+3; j++){
                 int *point = vertex_table[tri_index[j]];
@@ -118,19 +123,56 @@ process_cube(
                     ep_isolvl[k] *= ep_isolvl[k]>0.0?1.0:(-1.0);
                 }
 
+		/* compute mc index */
+		if(endpoint[0][0] != endpoint[1][0]){
+			mc_type = 0;
+		} 
+		else if (endpoint[0][1] != endpoint[1][1]){
+                        mc_type = 1;
+                } 
+                else if (endpoint[0][2] != endpoint[1][2]){
+                        mc_type = 2;
+                }
+		else {
+			mc_type = 8;
+		}
+		for(int t = 0; t < 3; t++){
+			float min_ep;
+			if(endpoint[0][t] < endpoint[1][t]){
+				min_ep = endpoint[0][t];
+			} else {
+				min_ep = endpoint[1][t];
+			}
+			if(min_ep > cube->lower_bound[t]){
+				mc_index[t] |= ( 1 << (63-cube->level));
+			}
+		}
+		
+
                 /* compute coordinate of triangle */
                 for(int t = 0; t < 3; t++){
                     tri_pos[j-i][t] = ep_isolvl[1]*endpoint[0][t] + ep_isolvl[0]*endpoint[1][t];
                     tri_pos[j-i][t] /= ep_isolvl[0] + ep_isolvl[1];
                 }
+		
+		/* add triangle */
+		//printf("finding vertex: (%x, %x, %x), %u  ...", 
+		//		(unsigned)mc_index[0], (unsigned)mc_index[1], (unsigned)mc_index[2], mc_type);
+		tri_v[j-i] = NULL;//mesh->findMCVertex(mc_index, mc_type);
+		if(!tri_v[j-i]){
+			tri_v[j-i] = new Vertex(tri_pos[j-i][0], tri_pos[j-i][1], tri_pos[j-i][2], 
+					mc_index, mc_type);
+			//printf("not found\n");
+		}else {
+			//printf("found\n");
+		}
+		mesh->addVertex(tri_v[j-i]);
             }
 
             /* add to mesh */
            // printf("MC: Triangle pushed\n");
-            mesh->addTriangle(new Triangle( 
-                    new Vertex(tri_pos[0][0], tri_pos[0][1], tri_pos[0][2]), 
-                    new Vertex(tri_pos[1][0], tri_pos[1][1], tri_pos[1][2]),
-                    new Vertex(tri_pos[2][0], tri_pos[2][1], tri_pos[2][2])));
+            mesh->addTriangle(new Triangle(tri_v[0], tri_v[1], tri_v[2]));
+
             /*
             for(int m = 0; m < 3; m++){
                 printf("v %f %f %f\n", tri_pos[m][0], tri_pos[m][1], tri_pos[m][2]);
@@ -185,6 +227,25 @@ process_cube(
                 sub_cube->level = cube->level + 1;
                 compute_cube_isolvl(sub_cube, isolvl_fn, threshold);
 
+		if(x) {
+			sub_cube->mc_index[0] = cube->mc_index[0] | (1 << (62-cube->level));
+		} else {
+			sub_cube->mc_index[0] = cube->mc_index[0];
+		}
+
+		if(y) {
+                        sub_cube->mc_index[1] = cube->mc_index[1] | (1 << (62-cube->level));
+                } else {
+                        sub_cube->mc_index[1] = cube->mc_index[1];
+                }
+
+		if(z) {
+                        sub_cube->mc_index[2] = cube->mc_index[2] | (1 << (62-cube->level));
+                } else {
+                        sub_cube->mc_index[2] = cube->mc_index[2];
+                }
+		
+
                 /* push into stack */
                 mc_cbstack_push(sub_cube);
             }
@@ -222,7 +283,7 @@ int marchingcube(
     if(!root_cube){
         return -2;
     }
-    root_cube->mc_index = 0;
+    memset(root_cube->mc_index, 0, sizeof(uint64_t)*3);
 
     /* initialize mesh */
     *result = new Mesh();

@@ -45,11 +45,11 @@ void Mesh::addTriangle(Triangle *t)
 	triangles->push_back(t);
 }
 
-Vertex *Mesh::findVertex(uint64_t index)
+Vertex *Mesh::findMCVertex(uint64_t mc_index[3], uint8_t mc_type)
 {
     list<Vertex*>::iterator iv;
     for (iv=vertices->begin(); iv != vertices->end(); iv++){
-        if ((*iv)->index == index) {
+        if ( !memcmp((*iv)->mc_index, mc_index, sizeof(uint64_t)*3) && (*iv)->mc_type == mc_type) {
             return (*iv);
         }
     }
