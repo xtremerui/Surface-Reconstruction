@@ -42,14 +42,26 @@ Bottom stuff goes here.
 \maketitle
 
 \section{Introduction}
-In computing graphic, an important research area is the surface reconstruction from an unorganized 3D point set. The input point set has no connectivity, geometry and normal informations. Those points are on or near a surface $M$ that we want to derive a surface $M\prime$ to approximate. If we can recover the structure, topology and interconnectivity from an unknown point set, we can not only better understand the original characteristic of the point set and use the output for further processing, but also contribute solving this general problem that appears in other area such as MRI, laser range scanner, radar and seismic surveys and mathematical models. 
-In early 90s, Hoppe et al[1] proposed an algorithm to infer the topology, the presence of boundaries and also geometry of surface $M$ from set of points {x1,...,xn} R^3. This algorithm is considered as a classic technique to solve surface reconstruction problem. Nowadays, several techniques are raised towards this problem or subset of this problem. For example, Poisson [2] is highly resilient to data noise but it assumes the orientation of points.   
+In computing graphic, an important research area is the surface reconstruction from an unorganized 3D point set. The input point set has no connectivity, geometry and normal informations. Those points are on or near a surface $M$ that we want to derive a surface $M\prime$ to approximate. If we can recover the structure, topology and interconnectivity from an unknown point set, we can not only better understand the original characteristic of the point set and use the output for further processing, but also contribute solving this general problem that appears in other area such as MRI, laser range scanner, radar and seismic surveys and mathematical models.
+ 
+In early 90s, Hoppe et al[1] proposed an algorithm to infer the topology, the presence of boundaries and also geometry of surface $M$ from set of points ${x1,...,xn} R^3$. This algorithm is considered as a classic technique to solve surface reconstruction problem. Nowadays, several techniques are raised towards this problem or subset of this problem. For example, Poisson [2] is highly resilient to data noise but it assumes the orientation of points. Hoppe's algorithm doesn't assume any information of the input point set. Based on that the algorithm can deal with a more general problem, which can be (or partly) used to solve any specific instance. Therefore we implemented Hoppe's algorithm in this project in order to better study on this classic algorithm and research area thus we can gain a solid knowledge of surface reconstruction.
+
+   
 
 \section{Algorithms}
+
+The input of Hoppe's algorithm is an unorganized 3D point set ${x1,...,xn}\in R^3$. For each point $x_{i}$ in the set, we first compute the set $Nbhd(x_{i})$  by kNN algorithm. The method is linearly compute the Euclidean distance between $x_{i}$ and each point in the point set. By sorting the point set by the distance k nearest points are marked as $Nbhd(x_{i})$. With $Nbhd(x_{i})$ we then compute the centroid $o_{i}$, which will be the centroid of the tangent plane $p_{i}$. Applying Principle Component Analysis of $Nbhd(x_{i})$, 3 vectors are returned and the smallest one $n_{i}$ will be the orientation of $p_{i}$ since $p_{i}$ is spanned by the other two vectors. Notice that the sign of $n_{i}$ could be either positive or negative, which has great impact on the final result. Therefore the next step is to find the correct sign of each $n_{i}$.
+
+According to Hoppe's analysis, the problem of assigning correct sign to $n_{i}$ is a global optimization that is NP-hard. The reason is we must ensure that for each close pair $(o_{i},o_{j})$, their normals must be $n_{i}{\odot}n_{j} {\simeq} 1$ in such a way that the tangent planes $p_{i}$ and $p_{j}$ are nearly parallel. In other word, the overall surface must maintain the orientation consistency. Thus this problem becomes finding an optimal order to propagate the normal from one specific point to its neighbours until the whole set is covered.
+
+To solve that problem, Minimum Spanning Tree (MST) is used to approximate the optimal travel order for plane normal propagation. First the Euclidean distance is used for finding the MST on set $\lbraceo_{1},...,o_{n}\rbrace$. In Hoppe's original propose the complexity is $O(n^{2})$ which means he had to 
+
 Describe Input here. \\
 What does each algorithms do \\
 how these algorithms are connected. (What do they contribute to the whole implementation.)
 \subsection{K Nearest Neighbours}
+
+
 
 \subsection{Principle Component Analysis}
 \subsection{K Euclidean Mininal Spanning Tree}
