@@ -42,8 +42,8 @@ Bottom stuff goes here.
 \maketitle
 
 \section{Introduction}
-In computing graphic, an important research area is the surface reconstruction from an unorganized 3D point set. The input point set has no connectivity, geometry and normal informations. Those points are on or near a surface $M$ that we want to derive a surface $M\prime$ to approximate. If we can recover the structure, topology and interconnectivity from an unknown point set, we can not only better understand the original characteristic of the point set and use the output for further processing, but also contribute solving this general problem that appears in other area such as MRI, laser range scanner, radar and seismic surveys and mathematical models. 
-In early 90s, Hoppe et al[1] proposed an algorithm to infer the topology, the presence of boundaries and also geometry of surface $M$ from set of points {x1,...,xn} R^3. This algorithm is considered as a classic technique to solve surface reconstruction problem. Nowadays, several techniques are raised towards this problem or subset of this problem. For example, Poisson [2] is highly resilient to data noise but it assumes the orientation of points.   
+In computing graphics, an important research area is the surface reconstruction from an unorganized 3D point set. The input point set has no connectivity, geometry and normal informations. Those points are on or near a surface $M$ that we want to derive a surface $M\prime$ to approximate. If we can recover the structure, topology and interconnectivity from an unknown point set, we can not only better understand the original characteristic of the point set and use the output for further processing, but also contribute solving this general problem that appears in other area such as MRI, laser range scanner, radar and seismic surveys and mathematical models. 
+In early 90s, Hoppe et al[1] proposed an algorithm to infer the topology, the presence of boundaries and also geometry of surface $M$ from set of points $\{x_1,...,x_n\} \in R^3$. This algorithm is considered as a classic technique to solve surface reconstruction problem. Nowadays, several techniques are raised towards this problem or subset of this problem. For example, Poisson [2] is highly resilient to data noise but it assumes the orientation of points.   
 
 \section{Algorithms}
 Describe Input here. \\
@@ -56,7 +56,7 @@ how these algorithms are connected. (What do they contribute to the whole implem
 What is $k$-EMST, how it is different from normal EMST
 \subsection{Normal Propagation}
 \subsection{Marching Cubes}
-what each algorithm is doing.
+Marching Cubes 
 \begin{algorithm}[t]
 \SetAlgoNoLine
 \KwIn{Iso-level function, initial bounding cube, and maximum sub-divide level}
@@ -72,29 +72,16 @@ $CubeStack$.push($InitialBoundingBox$)\;
 	\If{(iso-level on endpoints are all positive) \text{or}\\\ \ \ (iso-level on endpoints are all negative)}{
 		Continue\;
 	}
-	\
-
-}
-{
-        $Rnd_{\alpha}$ = Random($ID_{\alpha}$, $index$)\;
-        $Found$ = $TRUE$\;
-        \For{each node $\beta$ in $\alpha$'s two communication hops
-    }{
-      $Rnd_{\beta}$ = Random($ID_{\beta}$, $index$)\;
-      \If{($Rnd_{\alpha} < Rnd_{\beta}$) \text{or} ($Rnd_{\alpha}$ ==
-          $Rnd_{\beta}$ \text{and} $ID_{\alpha} < ID_{\beta}$)\;
-      }{
-        $Found$ = $FALSE$; break\;
-      }
-        }
-     \eIf{$Found$}{
-           $FreNum_{\alpha}$ = $index$\;
-         }{
-           $index$ ++\;
-     }
+	\If{$CurrentCube$.$Level$ == $MaxLevel$}{
+		Add proper triangle(s) to $Mesh$\;
+	}\Else{
+		\For{each one level smaller cube $SmallerCube$ in $CurrentCube$}{
+			$CubeStack$.push($SmallerCube$);
+		}
+	}
 }
 \caption{Marching Cubes Algorithms}
-\label{alg:one}
+\label{alg:mc}
 \end{algorithm}
 
 \section{Performance}
