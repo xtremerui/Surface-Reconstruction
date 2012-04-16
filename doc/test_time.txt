@@ -1,0 +1,2 @@
+sphere.smf k=15 size=1004 mc_sz=1/64 time=158sec
+
