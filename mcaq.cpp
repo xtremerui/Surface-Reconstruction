@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "Eigen/Core"
 #include "Eigen/Eigen"
 #include "marchingcubes.h"
@@ -366,6 +367,9 @@ void control_cb( int control )
 		vertices = mesh->getVertices();
 
 		list<Vertex*>::iterator iv1;
+
+        time_t mytime = time(0);
+        printf("\nStart time: %s\n", asctime(localtime(&mytime)));
 
         thre = -1;
 		for (iv1=vertices->begin(); iv1 != vertices->end(); iv1++)
@@ -723,6 +727,9 @@ void control_cb( int control )
         }
 
         showEdges = true;
+
+        mytime = time(0);
+        printf("\nEnd time: %s\n", asctime(localtime(&mytime)));
 
 	}
 
