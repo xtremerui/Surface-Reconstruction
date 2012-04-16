@@ -33,7 +33,7 @@ ZHUOLI JIANG
 Abstract goes here.
 \end{abstract}
 
-\keywords{keywords, goes, here}
+\keywords{MST, point set, PCA, Marching Cube}
 
 \begin{bottomstuff}
 Bottom stuff goes here.
@@ -42,16 +42,15 @@ Bottom stuff goes here.
 \maketitle
 
 \section{Introduction}
-The problem we are focusing here is a subset of surface reconstruction problems, which \\
-Background. \\
-The interest part.  \\
-The hard part. \\
+In computing graphic, an important research area is the surface reconstruction from an unorganized 3D point set. The input point set has no connectivity, geometry and normal informations. Those points are on or near a surface $M$ that we want to derive a surface $M\prime$ to approximate. If we can recover the structure, topology and interconnectivity from an unknown point set, we can not only better understand the original characteristic of the point set and use the output for further processing, but also contribute solving this general problem that appears in other area such as MRI, laser range scanner, radar and seismic surveys and mathematical models. 
+In early 90s, Hoppe et al[1] proposed an algorithm to infer the topology, the presence of boundaries and also geometry of surface $M$ from set of points {x1,...,xn} R^3. This algorithm is considered as a classic technique to solve surface reconstruction problem. Nowadays, several techniques are raised towards this problem or subset of this problem. For example, Poisson [2] is highly resilient to data noise but it assumes the orientation of points.   
 
 \section{Algorithms}
 Describe Input here. \\
 What does each algorithms do \\
 how these algorithms are connected. (What do they contribute to the whole implementation.)
 \subsection{K Nearest Neighbours}
+
 \subsection{Principle Component Analysis}
 \subsection{K Euclidean Mininal Spanning Tree}
 What is $k$-EMST, how it is different from normal EMST
